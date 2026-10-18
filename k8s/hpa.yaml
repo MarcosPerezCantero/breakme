@@ -1,0 +1,23 @@
+# HPA = Horizontal Pod Autoscaler. Ajusta el NÚMERO de réplicas según la carga.
+# Regla: mantener la CPU media al 50% de lo pedido en 'requests' (que son 100m).
+# Si se supera, añade réplicas (hasta 10); si baja, las quita (hasta un mínimo de 3).
+
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: breakme
+  namespace: breakme
+spec:
+  scaleTargetRef:            # a quién escala
+    apiVersion: apps/v1
+    kind: Deployment
+    name: breakme
+  minReplicas: 3
+  maxReplicas: 10
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 50   # objetivo: 50% de los 100m de requests (= 50m por pod)
