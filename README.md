@@ -10,6 +10,8 @@ reaccionan Docker y Kubernetes ante distintos tipos de fallo**.
 Cada endpoint provoca una avería controlada. Todos los parámetros peligrosos tienen un
 límite para que la propia app no pueda tumbar la máquina anfitriona.
 
+> 📐 ¿Quieres entender cómo encaja todo (Docker, CI y Kubernetes)? Lee **[ARCHITECTURE.md](ARCHITECTURE.md)**.
+
 ---
 
 ## Endpoints
@@ -59,6 +61,23 @@ docker compose up -d --scale breakme=3
 curl http://localhost:8080/        # repite: el "hostname" cambia en cada petición
 docker compose down
 ```
+
+### En Kubernetes (3 réplicas, self-healing y autoescalado)
+
+Los manifiestos están en `k8s/`. Requiere un clúster (p. ej. Docker Desktop con Kubernetes
+activado) y, una sola vez, instalar un Ingress Controller (`ingress-nginx`) y `metrics-server`
+(este último para el autoescalado).
+
+```bash
+kubectl create namespace breakme
+kubectl apply -f k8s/ -n breakme
+kubectl get pods,svc,ingress,hpa -n breakme
+# acceso por el Ingress:  http://breakme.localhost/docs
+```
+
+Incluye Deployment (3 réplicas), Service, probes (liveness/readiness), ConfigMap, Secret,
+`securityContext` (no root, disco de solo lectura), Ingress y HPA (autoescalado por CPU).
+Todo explicado en **[ARCHITECTURE.md](ARCHITECTURE.md)**.
 
 ---
 
@@ -130,12 +149,22 @@ curl http://localhost:8080/   # las réplicas restantes siguen respondiendo
 ```
 breakme/
 ├── app/
-│   └── main.py          # la API y todos los endpoints de fallo
-├── requirements.txt     # FastAPI + uvicorn
-├── Dockerfile           # build multi-etapa, usuario no root, healthcheck
+│   └── main.py              # la API y todos los endpoints de fallo
+├── requirements.txt         # FastAPI + uvicorn
+├── Dockerfile               # build multi-etapa, usuario no root, healthcheck
 ├── .dockerignore
-├── compose.yaml         # 3 réplicas de breakme + nginx como balanceador
-└── nginx.conf           # configuración del balanceo (round-robin vía DNS de Docker)
+├── compose.yaml             # 3 réplicas de breakme + nginx como balanceador
+├── nginx.conf               # configuración del balanceo (round-robin vía DNS de Docker)
+├── .github/workflows/ci.yml # CI: build + escaneo Trivy + push a GHCR
+├── k8s/                      # manifiestos de Kubernetes
+│   ├── deployment.yaml      #   réplicas, imagen, probes, recursos, seguridad
+│   ├── service.yaml         #   puerta estable + balanceo
+│   ├── ingress.yaml         #   acceso por breakme.localhost
+│   ├── configmap.yaml       #   configuración no sensible
+│   ├── secret.yaml          #   dato sensible (demo)
+│   └── hpa.yaml             #   autoescalado por CPU
+├── README.md
+└── ARCHITECTURE.md          # todas las piezas y cómo encajan
 ```
 
 ---
