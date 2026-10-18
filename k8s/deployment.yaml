@@ -25,3 +25,36 @@ spec:
           image: ghcr.io/marcosperezcantero/breakme:1.0.0
           ports:
             - containerPort: 8000   # el puerto en el que escucha la app dentro del pod
+
+          # --- Recursos: lo que reserva (requests) y su tope (limits) ---
+          resources:
+            requests:               # lo que el pod RESERVA (para que el scheduler lo coloque)
+              cpu: 100m             # 100m = 0,1 de un núcleo
+              memory: 64Mi
+            limits:                 # el MÁXIMO. Pasarse de memoria => OOMKilled
+              cpu: 500m
+              memory: 256Mi
+
+          # --- LIVENESS: ¿el proceso está vivo? Si falla => REINICIA el contenedor ---
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 10       # comprueba cada 10s
+            failureThreshold: 3     # tras 3 fallos seguidos, reinicia
+
+          # --- READINESS: ¿puede recibir tráfico? Si falla => lo SACA del Service (no reinicia) ---
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: 8000
+            periodSeconds: 5
+            failureThreshold: 3
+
+          # --- STARTUP: da margen al arranque antes de aplicar la liveness ---
+          startupProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            periodSeconds: 2
+            failureThreshold: 30    # hasta 60s para arrancar
