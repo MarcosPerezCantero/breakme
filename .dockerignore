@@ -1,0 +1,15 @@
+# No metemos en la imagen cosas que no deben ir: historial de git, entornos
+# virtuales locales, cachés de Python, secretos ni documentación.
+.git
+.gitignore
+.venv
+venv
+__pycache__/
+*.pyc
+*.pyo
+.env
+*.env
+.vscode
+.idea
+README.md
+k8s/
