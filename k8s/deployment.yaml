@@ -1,0 +1,27 @@
+# Un Deployment declara CUÁNTAS copias de la app queremos y de qué imagen.
+# Kubernetes se encarga de crearlas y de mantener ese número siempre.
+
+apiVersion: apps/v1
+kind: Deployment            # el tipo de objeto que creamos
+metadata:
+  name: breakme             # nombre del Deployment
+  namespace: breakme        # en nuestro cajón
+spec:
+  replicas: 3               # ESTADO DESEADO: quiero 3 pods corriendo
+
+  # El Deployment gestiona los pods que lleven esta etiqueta.
+  selector:
+    matchLabels:
+      app: breakme
+
+  # Plantilla con la que se fabrica cada pod:
+  template:
+    metadata:
+      labels:
+        app: breakme        # cada pod nace con esta etiqueta (debe coincidir con el selector)
+    spec:
+      containers:
+        - name: breakme
+          image: ghcr.io/marcosperezcantero/breakme:1.0.0
+          ports:
+            - containerPort: 8000   # el puerto en el que escucha la app dentro del pod

@@ -1,0 +1,19 @@
+# Un Service da una IP y un nombre ESTABLES delante de los pods (que cambian).
+# Reparte el tráfico entre todos los pods que lleven la etiqueta app: breakme.
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: breakme
+  namespace: breakme
+spec:
+  # Selecciona los pods por su etiqueta (la misma que pusimos en el Deployment).
+  selector:
+    app: breakme
+  ports:
+    - port: 80          # puerto por el que se accede AL Service
+      targetPort: 8000  # puerto donde escucha la app DENTRO del pod
+  # ClusterIP = visible solo dentro del clúster. Es el tipo por defecto.
+  # (Para entrar desde tu PC usaremos 'port-forward'; el acceso "de verdad"
+  #  por nombre/ruta vendrá con el Ingress en la Fase 10.)
+  type: ClusterIP
