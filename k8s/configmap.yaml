@@ -1,0 +1,11 @@
+# Configuración NO sensible, fuera de la imagen.
+# Cambiarla aquí + reiniciar el deployment basta: no hay que reconstruir la imagen.
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: breakme-config
+  namespace: breakme
+data:
+  APP_VERSION: "1.0.0 (viene del ConfigMap)"   # la app lee esta variable y la muestra en /
+  LOG_LEVEL: "info"

@@ -20,11 +20,42 @@ spec:
       labels:
         app: breakme        # cada pod nace con esta etiqueta (debe coincidir con el selector)
     spec:
+      # --- Seguridad a nivel de POD: que NO corra como root ---
+      securityContext:
+        runAsNonRoot: true          # Kubernetes rechaza el pod si intentara ser root
+        runAsUser: 10001            # el mismo uid que creamos en el Dockerfile (appuser)
+        seccompProfile:
+          type: RuntimeDefault      # perfil de llamadas al sistema restringido
       containers:
         - name: breakme
           image: ghcr.io/marcosperezcantero/breakme:1.0.0
           ports:
             - containerPort: 8000   # el puerto en el que escucha la app dentro del pod
+
+          # --- Seguridad a nivel de CONTENEDOR: endurecido ---
+          securityContext:
+            allowPrivilegeEscalation: false   # no puede ganar privilegios
+            readOnlyRootFilesystem: true      # el disco raíz es SOLO LECTURA
+            capabilities:
+              drop: ["ALL"]                   # le quitamos todos los permisos especiales del kernel
+
+          # --- Configuración desde el ConfigMap (como variables de entorno) ---
+          envFrom:
+            - configMapRef:
+                name: breakme-config
+
+          # --- Un dato sensible desde el Secret ---
+          env:
+            - name: API_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: breakme-secret
+                  key: API_KEY
+
+          # Como el disco es de solo lectura, damos un /tmp escribible aparte.
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
 
           # --- Recursos: lo que reserva (requests) y su tope (limits) ---
           resources:
@@ -58,3 +89,8 @@ spec:
               port: 8000
             periodSeconds: 2
             failureThreshold: 30    # hasta 60s para arrancar
+
+      # Volumen temporal escribible (porque el disco raíz es de solo lectura).
+      volumes:
+        - name: tmp
+          emptyDir: {}
