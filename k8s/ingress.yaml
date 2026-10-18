@@ -1,0 +1,22 @@
+# Un Ingress define REGLAS de enrutado HTTP de entrada al clúster.
+# Lo ejecuta el Ingress Controller (ingress-nginx) que acabamos de instalar.
+# Regla: el tráfico para el host "breakme.localhost" va al Service "breakme".
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: breakme
+  namespace: breakme
+spec:
+  ingressClassName: nginx        # qué controller lo atiende
+  rules:
+    - host: breakme.localhost    # entrar por este nombre
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: breakme     # a nuestro Service
+                port:
+                  number: 80
