@@ -1,5 +1,7 @@
 # BreakMe
 
+[![CI](https://github.com/MarcosPerezCantero/breakme/actions/workflows/ci.yml/badge.svg)](https://github.com/MarcosPerezCantero/breakme/actions/workflows/ci.yml)
+
 Una API pequeña (Python + FastAPI) **diseñada para romperse a propósito**: se cuelga,
 consume memoria, quema CPU o deja de estar lista cuando tú se lo pides. No pretende ser
 útil como aplicación — es un banco de pruebas para **ver con tus propios ojos cómo
